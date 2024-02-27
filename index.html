@@ -3,21 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./src/css/style.css">
     <title>Percentage Calculator</title>
   </head>
   <body>
     <div class="container">
+      <h1 id="title">Percentage Calculator</h1>
       <main class="main">
         <form class="calculator-form">
-          <input type="number" placeholder="Valor"/>
-          <input type="number" placeholder="Porcentagem"/>
-          <select>
-            <option disabled>Selecione</option>
-            <option value="increase">Aumentar</option>
-            <option value="decrease">Diminuir</option>
-          </select>
+          <fieldset>
+            <input type="number" placeholder="Valor"
+            name="value"/>
+            <input type="number" placeholder="Porcentagem"
+            name="percentage" id="percentage"/>
+            <select>
+              <option disabled>Selecione</option>
+              <option value="increase">Aumentar</option>
+              <option value="decrease">Diminuir</option>
+            </select>
+          </fieldset>
+          
           <button type="submit">Calcular</button>
         </form>
+        <span class="result visible">200222222222222222</span>
       </main>
     </div>
     <script type="module" src="/src/script.ts"></script>
