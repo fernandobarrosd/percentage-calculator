@@ -6,6 +6,8 @@ const $actionsSelect = document.querySelector("select#action") as HTMLSelectElem
 const $decimal = document.querySelector("input#decimal-value") as HTMLInputElement | null;
 const $percentage = document.querySelector("input#percentage") as HTMLInputElement | null;
 
+const numberFormatter = new Intl.NumberFormat("pt-br", {})
+
 function dispareUpdateResultEvent(
     decimal: number, 
     percentageValue: number,
@@ -29,7 +31,11 @@ $inputs.forEach($input => {
     $input.addEventListener("input", (e) => {
         const target = e.target as HTMLInputElement;
         const { value } = target;
-        target.value = value.replace(/\D/g, "")
+        const valueWithoutCharacters = value.replace(/\D/g, "");
+        if (valueWithoutCharacters) {
+            const valueFormatted = numberFormatter.format(parseInt(valueWithoutCharacters));
+            target.value = valueFormatted;
+        }
     });
 });
 
