@@ -1,5 +1,5 @@
 const $calculatorForm = document.forms[0];
-const $inputs = document.querySelectorAll("input[type=number]") as NodeListOf<HTMLInputElement>;
+const $inputs = document.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
 const $result = document.querySelector("#result");
 const $actionSymbol = document.querySelector("#action-symbol");
 const $actionsSelect = document.querySelector("select#action") as HTMLSelectElement | null;
@@ -24,6 +24,12 @@ $inputs.forEach($input => {
         if (e.key === "ArrowUp" || e.key === "ArrowDown") {
             e.preventDefault();
         }
+    });
+
+    $input.addEventListener("input", (e) => {
+        const target = e.target as HTMLInputElement;
+        const { value } = target;
+        target.value = value.replace(/\D/g, "")
     });
 });
 
