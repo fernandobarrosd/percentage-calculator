@@ -8,24 +8,29 @@
   </head>
   <body>
     <div class="container">
-      <h1 id="title">Percentage Calculator</h1>
       <main class="main">
+        <output id="result" class="result"></output>
         <form class="calculator-form">
           <fieldset>
-            <input type="number" placeholder="Valor"
-            name="value"/>
-            <input type="number" placeholder="Porcentagem"
-            name="percentage" id="percentage"/>
-            <select>
+            <div class="input-container">
+              <input type="number" placeholder="Valor"
+              name="value" required id="decimal-value"/>
+              <span id="action-symbol">+</span>
+            </div>
+            <div class="input-container">
+              <input type="number" placeholder="Porcentagem"
+              name="percentage" id="percentage" required/>
+              <span>%</span>
+            </div>
+            <select required name="action" id="action"
+            class="select">
               <option disabled>Selecione</option>
               <option value="increase">Aumentar</option>
               <option value="decrease">Diminuir</option>
             </select>
           </fieldset>
-          
           <button type="submit">Calcular</button>
         </form>
-        <span class="result visible">200222222222222222</span>
       </main>
     </div>
     <script type="module" src="/src/script.ts"></script>
