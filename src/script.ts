@@ -6,20 +6,45 @@ const $actionsSelect = document.querySelector("select#action") as HTMLSelectElem
 const $decimal = document.querySelector("input#decimal-value") as HTMLInputElement | null;
 const $percentage = document.querySelector("input#percentage") as HTMLInputElement | null;
 
-const numberFormatter = new Intl.NumberFormat("pt-br", {})
-
-function dispareUpdateResultEvent(
-    decimal: number, 
-    percentageValue: number,
-    action: "increase" | "decrease") {
-    $result?.dispatchEvent(new CustomEvent("resultUpdated", {
-        detail: {
-            decimal,
-            percentageValue,
-            action
-        }
-    }))
+type StateProxyType = {
+    data: {
+        decimal: number,
+        percentageValue: number,
+        action: "increase" | "decrease"
+    }
 }
+
+const numberFormatter = new Intl.NumberFormat("pt-br", {})
+const state = new Proxy<StateProxyType>({
+    data: {
+        decimal: 0, 
+        percentageValue: 0,
+        action: "increase"
+    }
+}, {
+    set(target, _, newTargetValue) {
+        target.data = newTargetValue;
+
+        const { decimal, percentageValue, action } = target.data;
+        const percentage = percentageValue / 100;
+        let newValue = 0;
+            
+            
+        if (action === "increase") {
+            newValue = decimal + (decimal * percentage);
+        }
+        else {
+            newValue = decimal - (decimal * percentage);
+        }
+        newValue = parseInt(newValue.toString());
+            
+        if ($result) {
+            $result.textContent = `${decimal} ${action === "increase" ? "aumentou" : "diminuiu"}
+                para ${newValue}`;
+        }
+        return true;
+    }
+});
 
 $inputs.forEach($input => {
     $input.addEventListener("keydown", (e) => {
@@ -75,10 +100,13 @@ $actionsSelect?.addEventListener("input", e => {
     }
 
     if ($decimal && $percentage) {
-        const decimal = parseInt($decimal.value);
-        const percentage = parseInt($percentage.value);
-
-        dispareUpdateResultEvent(decimal, percentage, action);
+        const decimal = $decimal.valueAsNumber;
+        const percentage = $percentage.valueAsNumber;
+        state.data = {
+            decimal,
+            percentageValue: percentage,
+            action
+        }
     }
 });
 
@@ -92,11 +120,18 @@ $calculatorForm.addEventListener("submit", e => {
     const decimalValue = formData.get("value")?.toString();
     const percentageValue = formData.get("percentage")?.toString();
     const actionValue = formData.get("action")?.toString();
-    dispareUpdateResultEvent(20, 20, "increase");
+
+    
+
     if (decimalValue && percentageValue && actionValue) {
         const percentage = parseInt(percentageValue);
         const decimal = parseInt(decimalValue!);
         const action = actionValue as "increase" | "decrease";
-        dispareUpdateResultEvent(decimal, percentage, action);
+
+        state.data = {
+            decimal,
+            percentageValue: percentage,
+            action
+        }
     }
 });
