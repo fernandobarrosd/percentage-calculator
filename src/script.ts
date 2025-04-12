@@ -1,93 +1,85 @@
+type ElementOrNull<T extends HTMLElement> = T | null;
+type Action = "increase" | "decrease";
+
+type StateData = {
+    decimal: number,
+    percentageValue: number,
+    action: Action
+}
+
+type StateProxyType = {
+    data: StateData
+}
+
 const $calculatorForm = document.forms[0];
 const $inputs = document.querySelectorAll("input") as NodeListOf<HTMLInputElement>;
 const $result = document.querySelector("#result");
 const $actionSymbol = document.querySelector("#action-symbol");
-const $actionsSelect = document.querySelector("select#action") as HTMLSelectElement | null;
-const $decimal = document.querySelector("input#decimal-value") as HTMLInputElement | null;
-const $percentage = document.querySelector("input#percentage") as HTMLInputElement | null;
+const $actionsSelect = document.querySelector("select#action") as ElementOrNull<HTMLSelectElement>;
+const $decimalInput = document.querySelector("input#decimal-value") as ElementOrNull<HTMLInputElement>;
+const $percentageInput = document.querySelector("input#percentage") as ElementOrNull<HTMLInputElement>;
 
-type StateProxyType = {
-    data: {
-        decimal: number,
-        percentageValue: number,
-        action: "increase" | "decrease"
-    }
-}
-
-const numberFormatter = new Intl.NumberFormat("pt-br", {})
-const state = new Proxy<StateProxyType>({
+const initialState : StateProxyType = {
     data: {
         decimal: 0, 
         percentageValue: 0,
         action: "increase"
     }
-}, {
+}
+const state = new Proxy<StateProxyType>(initialState, {
     set(target, _, newTargetValue) {
         target.data = newTargetValue;
 
         const { decimal, percentageValue, action } = target.data;
         const percentage = percentageValue / 100;
-        let newValue = 0;
-            
-            
-        if (action === "increase") {
-            newValue = decimal + (decimal * percentage);
-        }
-        else {
-            newValue = decimal - (decimal * percentage);
-        }
-        newValue = parseInt(newValue.toString());
-            
+        const newValue = calculatePercentage(action, decimal, percentage);
+        const decimalValueFormatted = formatNumberTextToBRLNumberFormat(decimal.toString());
+        const newValueFormatted = formatNumberTextToBRLNumberFormat(newValue.toString());
+    
         if ($result) {
-            $result.textContent = `${decimal} ${action === "increase" ? "aumentou" : "diminuiu"}
-                para ${newValue}`;
+            $result.textContent = `${decimalValueFormatted} 
+            ${action === "increase" ? "aumentou" : "diminuiu"}
+                para ${newValueFormatted}`;
         }
         return true;
     }
 });
 
-$inputs.forEach($input => {
-    $input.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-            e.preventDefault();
-        }
-    });
+function updateState(stateData: StateData) {
+    state.data = stateData;
+}
 
+function calculatePercentage(action: Action, decimal: number, percentage: number) {
+    if (action === "increase") {
+        return decimal + (decimal * percentage);
+    }
+    return decimal - (decimal * percentage);
+}
+
+
+function formatNumberTextToBRLNumberFormat(numberString: string) {
+    const numberFormatter = new Intl.NumberFormat("pt-br", {});
+    return numberFormatter.format(parseInt(numberString));
+}
+
+
+$inputs.forEach($input => {
     $input.addEventListener("input", (e) => {
         const target = e.target as HTMLInputElement;
         const { value } = target;
+
         const valueWithoutCharacters = value.replace(/\D/g, "");
+
         if (valueWithoutCharacters) {
-            const valueFormatted = numberFormatter.format(parseInt(valueWithoutCharacters));
-            target.value = valueFormatted;
+            target.value = formatNumberTextToBRLNumberFormat(valueWithoutCharacters);   
         }
     });
 });
 
-$result?.addEventListener("resultUpdated", e => {
-    const { percentageValue, action, decimal } = e.detail;
-    const percentage = percentageValue / 100;
-    let newValue = 0;
-        
-        
-    if (action === "increase") {
-        newValue = decimal + (decimal * percentage);
-    }
-    else {
-        newValue = decimal - (decimal * percentage);
-    }
-    newValue = parseInt(newValue.toString());
-        
-    if ($result) {
-        $result.textContent = `${decimal} ${action === "increase" ? "aumentou" : "diminuiu"}
-            para ${newValue}`;
-    }
-})
 
 $actionsSelect?.addEventListener("input", e => {
     const { selectedIndex, options } = e.target as HTMLSelectElement;
     const $selectedOption = options[selectedIndex];
-    const action = $selectedOption.value as "increase" | "decrease"
 
     if ($actionSymbol) {
         
@@ -98,18 +90,7 @@ $actionsSelect?.addEventListener("input", e => {
             $actionSymbol.textContent = "-";
         }
     }
-
-    if ($decimal && $percentage) {
-        const decimal = $decimal.valueAsNumber;
-        const percentage = $percentage.valueAsNumber;
-        state.data = {
-            decimal,
-            percentageValue: percentage,
-            action
-        }
-    }
 });
-
 
 
 
@@ -121,17 +102,16 @@ $calculatorForm.addEventListener("submit", e => {
     const percentageValue = formData.get("percentage")?.toString();
     const actionValue = formData.get("action")?.toString();
 
-    
 
     if (decimalValue && percentageValue && actionValue) {
-        const percentage = parseInt(percentageValue);
-        const decimal = parseInt(decimalValue!);
+        const percentage = parseInt(percentageValue.replace(".", ""));
+        const decimal = parseInt(decimalValue.replace(".", ""));
         const action = actionValue as "increase" | "decrease";
 
-        state.data = {
-            decimal,
+        updateState({
+            decimal: decimal,
             percentageValue: percentage,
             action
-        }
+        })
     }
 });
